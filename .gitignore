@@ -410,3 +410,12 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+# Test Projects (excluded from repository)
+Inventory.Api.Tests/
+**/Tests/
+**/*.Tests/
+TEST_RESULTS.md
+
+# Documentation (personal use only)
+DOCS/
