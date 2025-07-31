@@ -109,7 +109,8 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
                 .HasMaxLength(1000);
 
             entity.Property(e => e.Unit)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(50);
 
             entity.Property(e => e.Quantity)
                 .IsRequired()
