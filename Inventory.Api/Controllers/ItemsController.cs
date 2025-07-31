@@ -301,83 +301,83 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     }
 
     /// <summary>
-    /// Performs a soft delete on an inventory item, marking it as inactive while preserving data.
+    /// Deactivates an inventory item by marking it as inactive while preserving all data.
     /// </summary>
-    /// <param name="id">The unique identifier of the item to delete (must be positive integer)</param>
+    /// <param name="id">The unique identifier of the item to deactivate (must be positive integer)</param>
     /// <returns>
-    /// No content on successful deletion. The item is marked as inactive but data is preserved.
+    /// No content on successful deactivation. The item is marked as inactive but data is preserved.
     /// </returns>
-    /// <response code="204">Item was successfully soft deleted (marked as inactive)</response>
-    /// <response code="400">Invalid ID parameter (must be positive integer)</response>
+    /// <response code="204">Item was successfully deactivated (marked as inactive)</response>
+    /// <response code="400">Invalid ID parameter or item is already inactive</response>
     /// <response code="404">Item with the specified ID was not found</response>
     /// <response code="500">Internal server error occurred</response>
     /// <remarks>
-    /// This operation performs a "soft delete" which means:
+    /// This operation performs a "soft deactivation" which means:
     /// - The item is marked as inactive (IsActive = false)
     /// - All item data is preserved in the database
     /// - The item will not appear in normal queries (unless specifically requested)
-    /// - The item can be restored using the restore endpoint
+    /// - The item can be reactivated using the activate endpoint
     /// - Historical data and relationships are maintained
     /// 
-    /// Use the restore endpoint (POST /api/items/{id}/restore) to reactivate the item.
+    /// Use the activate endpoint (PATCH /api/items/{id}/activate) to reactivate the item.
     /// </remarks>
-    [HttpDelete("{id:int}")]
+    [HttpPatch("{id:int}/deactivate")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> DeleteItem(int id)
+    public async Task<IActionResult> DeactivateItem(int id)
     {
-        _logger.LogInformation("API.ITEMS.DELETE: Soft deleting item ID: {ItemId}", id);
+        _logger.LogInformation("API.ITEMS.DEACTIVATE: Deactivating item ID: {ItemId}", id);
 
         var result = await _itemService.DeleteItemAsync(id);
 
         if (!result.Success)
         {
-            _logger.LogWarning("API.ITEMS.DELETE.FAILED: Failed to delete item ID: {ItemId} - Error: {ErrorMessage}", id, result.ErrorMessage);
+            _logger.LogWarning("API.ITEMS.DEACTIVATE.FAILED: Failed to deactivate item ID: {ItemId} - Error: {ErrorMessage}", id, result.ErrorMessage);
         }
 
         return HandleServiceResult(result);
     }
 
     /// <summary>
-    /// Restores a previously soft-deleted inventory item, making it active again.
+    /// Activates a previously deactivated inventory item, making it active again.
     /// </summary>
-    /// <param name="id">The unique identifier of the item to restore (must be positive integer)</param>
+    /// <param name="id">The unique identifier of the item to activate (must be positive integer)</param>
     /// <returns>
-    /// The restored item with updated status and timestamps.
+    /// The activated item with updated status and timestamps.
     /// </returns>
-    /// <response code="200">Item was successfully restored and is now active</response>
-    /// <response code="400">Invalid ID parameter (must be positive integer)</response>
-    /// <response code="404">Item with the specified ID was not found (may have been permanently deleted)</response>
+    /// <response code="200">Item was successfully activated and is now active</response>
+    /// <response code="400">Invalid ID parameter or item is already active</response>
+    /// <response code="404">Item with the specified ID was not found</response>
     /// <response code="500">Internal server error occurred</response>
     /// <remarks>
-    /// This operation restores a soft-deleted item by:
+    /// This operation activates a deactivated item by:
     /// - Setting IsActive to true
     /// - Updating the UpdatedAt timestamp
     /// - Making the item visible in normal queries again
     /// - Preserving all original item data and history
     /// 
-    /// This endpoint can restore items that were soft-deleted using the DELETE endpoint.
-    /// If an item was never deleted or doesn't exist, a 404 response will be returned.
+    /// This endpoint can activate items that were deactivated using the deactivate endpoint.
+    /// If an item was never deactivated or doesn't exist, appropriate error responses will be returned.
     /// 
-    /// After restoration, the item will behave exactly as it did before deletion,
+    /// After activation, the item will behave exactly as it did before deactivation,
     /// maintaining all its properties, relationships, and transaction history.
     /// </remarks>
-    [HttpPost("{id:int}/restore")]
+    [HttpPatch("{id:int}/activate")]
     [ProducesResponseType(typeof(ItemDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> RestoreItem(int id)
+    public async Task<IActionResult> ActivateItem(int id)
     {
-        _logger.LogInformation("API.ITEMS.RESTORE: Restoring item ID: {ItemId}", id);
+        _logger.LogInformation("API.ITEMS.ACTIVATE: Activating item ID: {ItemId}", id);
 
         var result = await _itemService.RestoreItemAsync(id);
 
         if (!result.Success)
         {
-            _logger.LogWarning("API.ITEMS.RESTORE.FAILED: Failed to restore item ID: {ItemId} - Error: {ErrorMessage}", id, result.ErrorMessage);
+            _logger.LogWarning("API.ITEMS.ACTIVATE.FAILED: Failed to activate item ID: {ItemId} - Error: {ErrorMessage}", id, result.ErrorMessage);
         }
 
         return HandleServiceResult(result);
