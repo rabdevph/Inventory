@@ -4,31 +4,17 @@ using Inventory.Api.Models;
 
 namespace Inventory.Api.Data;
 
-/// <summary>
-/// Database context for the Inventory Management System, extending Identity for user management
-/// </summary>
 public class InventoryContext(DbContextOptions<InventoryContext> options) : IdentityDbContext<ApplicationUser, ApplicationRole, string>(options)
 {
     #region DbSets
 
-    /// <summary>
-    /// Inventory items in the system
-    /// </summary>
     public DbSet<Item> Items { get; set; }
-
-    /// <summary>
-    /// Inventory transaction records (ins, outs, adjustments)
-    /// </summary>
     public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
     #endregion
 
     #region Configuration Methods
 
-    /// <summary>
-    /// Configures entity relationships, constraints, and database mappings
-    /// </summary>
-    /// <param name="modelBuilder">The model builder instance</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -43,10 +29,6 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         ConfigureIdentityTables(modelBuilder);
     }
 
-    /// <summary>
-    /// Configures ApplicationUser entity properties and relationships
-    /// </summary>
-    /// <param name="modelBuilder">The model builder instance</param>
     private static void ConfigureApplicationUser(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApplicationUser>(entity =>
@@ -88,10 +70,6 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         });
     }
 
-    /// <summary>
-    /// Configures ApplicationRole entity properties
-    /// </summary>
-    /// <param name="modelBuilder">The model builder instance</param>
     private static void ConfigureApplicationRole(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApplicationRole>(entity =>
@@ -109,10 +87,6 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         });
     }
 
-    /// <summary>
-    /// Configures Item entity properties and constraints
-    /// </summary>
-    /// <param name="modelBuilder">The model builder instance</param>
     private static void ConfigureItem(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Item>(entity =>
@@ -163,10 +137,6 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         });
     }
 
-    /// <summary>
-    /// Configures InventoryTransaction entity properties and relationships
-    /// </summary>
-    /// <param name="modelBuilder">The model builder instance</param>
     private static void ConfigureInventoryTransaction(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<InventoryTransaction>(entity =>
@@ -220,10 +190,6 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         });
     }
 
-    /// <summary>
-    /// Configures Identity table names for cleaner database schema
-    /// </summary>
-    /// <param name="modelBuilder">The model builder instance</param>
     private static void ConfigureIdentityTables(ModelBuilder modelBuilder)
     {
         // Customize Identity table names
@@ -240,30 +206,18 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
 
     #region Override Methods
 
-    /// <summary>
-    /// Override SaveChanges to automatically update timestamps
-    /// </summary>
-    /// <returns>Number of affected records</returns>
     public override int SaveChanges()
     {
         UpdateTimestamps();
         return base.SaveChanges();
     }
 
-    /// <summary>
-    /// Override SaveChangesAsync to automatically update timestamps
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Number of affected records</returns>
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         UpdateTimestamps();
         return await base.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Automatically updates CreatedAt and UpdatedAt timestamps before saving
-    /// </summary>
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
