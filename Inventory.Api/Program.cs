@@ -34,8 +34,8 @@ builder.Services.AddSwaggerGen(c =>
         Description = "A comprehensive REST API for managing inventory items with CRUD operations, filtering, pagination, and soft deletion capabilities.",
         Contact = new OpenApiContact
         {
-            Name = "Inventory API Team",
-            Email = "support@inventoryapi.com"
+            Name = "RAB.devph",
+            Email = "rab.devph@gmail.com"
         }
     });
 
@@ -73,6 +73,7 @@ builder.Services.AddDbContext<InventoryContext>(options =>
 
 // Register application services
 builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 var app = builder.Build();
 
