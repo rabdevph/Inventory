@@ -12,8 +12,8 @@ public class InventoryTransaction
     public DateTime? TransactionDate { get; set; }
     public string? ReceivedByUserId { get; set; }
     public ApplicationUser? ReceivedByUser { get; set; }
-    public string? RequestedByUserId { get; set; }
-    public ApplicationUser? RequestedByUser { get; set; }
+    public int? RequestedByEmployeeId { get; set; }
+    public Employee? RequestedByEmployee { get; set; }
     public string? ProcessedByUserId { get; set; }
     public ApplicationUser? ProcessedByUser { get; set; }
     public string? Remarks { get; set; }
