@@ -9,6 +9,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
     #region DbSets
 
     public DbSet<Item> Items { get; set; }
+    public DbSet<Employee> Employees { get; set; }
     public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
     #endregion
@@ -22,6 +23,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         // Configure each entity
         ConfigureApplicationUser(modelBuilder);
         ConfigureApplicationRole(modelBuilder);
+        ConfigureEmployee(modelBuilder);
         ConfigureItem(modelBuilder);
         ConfigureInventoryTransaction(modelBuilder);
 
@@ -84,6 +86,46 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
             entity.Property(e => e.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
+        });
+    }
+
+    private static void ConfigureEmployee(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Employee>(entity =>
+        {
+            // Table configuration
+            entity.ToTable("Employees");
+
+            // Primary key
+            entity.HasKey(e => e.Id);
+
+            // Property configurations
+            entity.Property(e => e.FirstName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Position)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.Department)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.UpdatedAt);
+
+            // Indexes
+            entity.HasIndex(e => new { e.FirstName, e.LastName })
+                .IsUnique();
+
+            // Ignore computed properties
+            entity.Ignore(e => e.FullName);
         });
     }
 
@@ -173,9 +215,9 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
                 .HasForeignKey(e => e.ReceivedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            entity.HasOne(e => e.RequestedByUser)
+            entity.HasOne(e => e.RequestedByEmployee)
                 .WithMany()
-                .HasForeignKey(e => e.RequestedByUserId)
+                .HasForeignKey(e => e.RequestedByEmployeeId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(e => e.ProcessedByUser)
@@ -222,7 +264,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is Item || e.Entity is ApplicationUser || e.Entity is InventoryTransaction)
+            .Where(e => e.Entity is Item || e.Entity is ApplicationUser || e.Entity is Employee || e.Entity is InventoryTransaction)
             .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
 
         foreach (var entityEntry in entries)
@@ -233,6 +275,8 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
                     item.CreatedAt = DateTime.UtcNow;
                 else if (entityEntry.Entity is ApplicationUser user)
                     user.CreatedAt = DateTime.UtcNow;
+                else if (entityEntry.Entity is Employee employee)
+                    employee.CreatedAt = DateTime.UtcNow;
                 else if (entityEntry.Entity is InventoryTransaction transaction)
                     transaction.CreatedAt = DateTime.UtcNow;
             }
@@ -243,6 +287,8 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
                     item.UpdatedAt = DateTime.UtcNow;
                 else if (entityEntry.Entity is ApplicationUser user)
                     user.UpdatedAt = DateTime.UtcNow;
+                else if (entityEntry.Entity is Employee employee)
+                    employee.UpdatedAt = DateTime.UtcNow;
                 // Note: InventoryTransaction doesn't have UpdatedAt - transactions are immutable
             }
         }
