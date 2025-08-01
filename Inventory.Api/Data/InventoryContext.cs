@@ -114,6 +114,9 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
             entity.Property(e => e.Department)
                 .HasMaxLength(200);
 
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50);
+
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");

@@ -9,6 +9,7 @@ public class Employee
     public string LastName { get; set; } = string.Empty;
     public string? Position { get; set; }
     public string? Department { get; set; }
+    public string? EmployeeCode { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
