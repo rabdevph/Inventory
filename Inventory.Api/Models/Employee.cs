@@ -10,6 +10,7 @@ public class Employee
     public string? Position { get; set; }
     public string? Department { get; set; }
     public string? EmployeeCode { get; set; }
+    public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
