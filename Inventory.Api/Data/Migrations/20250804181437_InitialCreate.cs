@@ -13,6 +13,26 @@ namespace Inventory.Api.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Employees",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Position = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    Department = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    EmployeeCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Employees", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
@@ -20,7 +40,7 @@ namespace Inventory.Api.Data.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    Unit = table.Column<int>(type: "integer", nullable: false),
+                    Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
@@ -107,25 +127,41 @@ namespace Inventory.Api.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TransactionCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     TransactionType = table.Column<string>(type: "text", nullable: false),
-                    TransactionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    TransactionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ReceivedByUserId = table.Column<string>(type: "text", nullable: true),
-                    RequestedByUserId = table.Column<string>(type: "text", nullable: true),
+                    RequestedByEmployeeId = table.Column<int>(type: "integer", nullable: true),
                     ProcessedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CancelledByUserId = table.Column<string>(type: "text", nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Remarks = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_InventoryTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InventoryTransactions_Employees_RequestedByEmployeeId",
+                        column: x => x.RequestedByEmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_InventoryTransactions_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_InventoryTransactions_Users_CancelledByUserId",
+                        column: x => x.CancelledByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_InventoryTransactions_Users_ProcessedByUserId",
                         column: x => x.ProcessedByUserId,
@@ -135,12 +171,6 @@ namespace Inventory.Api.Data.Migrations
                     table.ForeignKey(
                         name: "FK_InventoryTransactions_Users_ReceivedByUserId",
                         column: x => x.ReceivedByUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_InventoryTransactions_Users_RequestedByUserId",
-                        column: x => x.RequestedByUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
@@ -232,6 +262,17 @@ namespace Inventory.Api.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Employees_FirstName_LastName",
+                table: "Employees",
+                columns: new[] { "FirstName", "LastName" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_CancelledByUserId",
+                table: "InventoryTransactions",
+                column: "CancelledByUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_InventoryTransactions_ItemId",
                 table: "InventoryTransactions",
                 column: "ItemId");
@@ -252,9 +293,14 @@ namespace Inventory.Api.Data.Migrations
                 column: "ReceivedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InventoryTransactions_RequestedByUserId",
+                name: "IX_InventoryTransactions_RequestedByEmployeeId",
                 table: "InventoryTransactions",
-                column: "RequestedByUserId");
+                column: "RequestedByEmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_Status",
+                table: "InventoryTransactions",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryTransactions_TransactionDate",
@@ -265,6 +311,11 @@ namespace Inventory.Api.Data.Migrations
                 name: "IX_InventoryTransactions_TransactionType",
                 table: "InventoryTransactions",
                 column: "TransactionType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_TransactionType_Status",
+                table: "InventoryTransactions",
+                columns: new[] { "TransactionType", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Items_IsActive",
@@ -348,6 +399,9 @@ namespace Inventory.Api.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Employees");
 
             migrationBuilder.DropTable(
                 name: "Items");

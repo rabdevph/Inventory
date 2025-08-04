@@ -5,13 +5,13 @@ namespace Inventory.Api.Data;
 
 public class InventoryContextSeedData(
     InventoryContext context,
-    UserManager<ApplicationUser> userManager,
-    RoleManager<ApplicationRole> roleManager,
+    UserManager<User> userManager,
+    RoleManager<Role> roleManager,
     ILogger<InventoryContextSeedData> logger)
 {
     private readonly InventoryContext _context = context;
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
+    private readonly UserManager<User> _userManager = userManager;
+    private readonly RoleManager<Role> _roleManager = roleManager;
     private readonly ILogger<InventoryContextSeedData> _logger = logger;
 
     public async Task SeedAsync()
@@ -22,7 +22,7 @@ public class InventoryContextSeedData(
         {
             if (!await _roleManager.RoleExistsAsync(role))
             {
-                await _roleManager.CreateAsync(new ApplicationRole { Name = role });
+                await _roleManager.CreateAsync(new Role { Name = role });
                 _logger.LogInformation("SEED.ROLE.CREATED: Created role {Role}", role);
             }
             else
@@ -33,7 +33,7 @@ public class InventoryContextSeedData(
 
         if (!_userManager.Users.Any())
         {
-            var adminUser = new ApplicationUser
+            var adminUser = new User
             {
                 UserName = "admin",
                 Email = "admin@example.com",

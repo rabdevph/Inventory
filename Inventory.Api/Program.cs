@@ -79,7 +79,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
 
 // Configure Identity
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<InventoryContext>()
     .AddDefaultTokenProviders();
 

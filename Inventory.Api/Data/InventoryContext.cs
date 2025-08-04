@@ -4,7 +4,7 @@ using Inventory.Api.Models;
 
 namespace Inventory.Api.Data;
 
-public class InventoryContext(DbContextOptions<InventoryContext> options) : IdentityDbContext<ApplicationUser, ApplicationRole, string>(options)
+public class InventoryContext(DbContextOptions<InventoryContext> options) : IdentityDbContext<User, Role, string>(options)
 {
     #region DbSets
 
@@ -21,8 +21,8 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         base.OnModelCreating(modelBuilder);
 
         // Configure each entity
-        ConfigureApplicationUser(modelBuilder);
-        ConfigureApplicationRole(modelBuilder);
+        ConfigureUser(modelBuilder);
+        ConfigureRole(modelBuilder);
         ConfigureEmployee(modelBuilder);
         ConfigureItem(modelBuilder);
         ConfigureInventoryTransaction(modelBuilder);
@@ -31,9 +31,9 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         ConfigureIdentityTables(modelBuilder);
     }
 
-    private static void ConfigureApplicationUser(ModelBuilder modelBuilder)
+    private static void ConfigureUser(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ApplicationUser>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
             // Table configuration
             entity.ToTable("Users");
@@ -62,7 +62,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
             // Indexes
             entity.HasIndex(e => e.EmployeeCode)
                 .IsUnique()
-                .HasFilter($"\"{nameof(ApplicationUser.EmployeeCode)}\" IS NOT NULL");
+                .HasFilter($"\"{nameof(User.EmployeeCode)}\" IS NOT NULL");
 
             entity.HasIndex(e => e.Email)
                 .IsUnique();
@@ -72,9 +72,9 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
         });
     }
 
-    private static void ConfigureApplicationRole(ModelBuilder modelBuilder)
+    private static void ConfigureRole(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ApplicationRole>(entity =>
+        modelBuilder.Entity<Role>(entity =>
         {
             // Table configuration
             entity.ToTable("Roles");
@@ -262,8 +262,8 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
     private static void ConfigureIdentityTables(ModelBuilder modelBuilder)
     {
         // Customize Identity table names
-        modelBuilder.Entity<ApplicationUser>().ToTable("Users");
-        modelBuilder.Entity<ApplicationRole>().ToTable("Roles");
+        modelBuilder.Entity<User>().ToTable("Users");
+        modelBuilder.Entity<Role>().ToTable("Roles");
         modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<string>>().ToTable("UserRoles");
         modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<string>>().ToTable("UserClaims");
         modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>().ToTable("UserLogins");
@@ -290,7 +290,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is Item || e.Entity is ApplicationUser || e.Entity is Employee || e.Entity is InventoryTransaction)
+            .Where(e => e.Entity is Item || e.Entity is User || e.Entity is Employee || e.Entity is InventoryTransaction)
             .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
 
         foreach (var entityEntry in entries)
@@ -299,7 +299,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
             {
                 if (entityEntry.Entity is Item item)
                     item.CreatedAt = DateTime.UtcNow;
-                else if (entityEntry.Entity is ApplicationUser user)
+                else if (entityEntry.Entity is User user)
                     user.CreatedAt = DateTime.UtcNow;
                 else if (entityEntry.Entity is Employee employee)
                     employee.CreatedAt = DateTime.UtcNow;
@@ -311,7 +311,7 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
             {
                 if (entityEntry.Entity is Item item)
                     item.UpdatedAt = DateTime.UtcNow;
-                else if (entityEntry.Entity is ApplicationUser user)
+                else if (entityEntry.Entity is User user)
                     user.UpdatedAt = DateTime.UtcNow;
                 else if (entityEntry.Entity is Employee employee)
                     employee.UpdatedAt = DateTime.UtcNow;

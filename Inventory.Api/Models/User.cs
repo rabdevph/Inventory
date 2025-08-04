@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Inventory.Api.Models;
 
-public class ApplicationUser : IdentityUser
+public class User : IdentityUser
 {
     public string Firstname { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
