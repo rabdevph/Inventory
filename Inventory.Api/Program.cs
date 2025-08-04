@@ -6,6 +6,8 @@ using Inventory.Api.Data;
 using Inventory.Api.Interfaces;
 using Inventory.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Inventory.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +76,14 @@ builder.Services.AddDbContext<InventoryContext>(options =>
 // Register application services
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
+
+// Configure Identity
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+    .AddEntityFrameworkStores<InventoryContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<InventoryContextSeedData>();
 
 var app = builder.Build();
 
@@ -105,6 +115,13 @@ if (!app.Environment.IsDevelopment())
 
 // Map controllers
 app.MapControllers();
+
+// Seed default user at startup
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<InventoryContextSeedData>();
+    await seeder.SeedAsync();
+}
 
 app.Run();
 
