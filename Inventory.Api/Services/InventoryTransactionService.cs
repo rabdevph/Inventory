@@ -380,6 +380,11 @@ public class InventoryTransactionService(InventoryContext context, ILogger<Inven
         if (item == null)
             return ServiceResult<InventoryTransactionDto>.BadRequest($"Item with ID {transaction.ItemId} not found");
 
+        // Check current stock if sufficient
+        if (item.Quantity < transaction.Quantity)
+            return ServiceResult<InventoryTransactionDto>.Conflict("Insufficient stock to process this transaction.");
+
+        // Update item quantity and transaction status
         item.Quantity -= transaction.Quantity;
         transaction.Status = TransactionStatus.Completed;
         transaction.ProcessedByUserId = processedByUserId;
