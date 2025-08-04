@@ -198,6 +198,10 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
             entity.HasKey(e => e.Id);
 
             // Property configurations
+            entity.Property(e => e.TransactionCode)
+                .IsRequired()
+                .HasMaxLength(20);
+
             entity.Property(e => e.Quantity)
                 .IsRequired();
 
@@ -206,6 +210,14 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
                 .HasConversion<string>(); // Store enum as string
 
             entity.Property(e => e.TransactionDate)
+                .IsRequired(false); // Explicitly nullable for OUT transactions
+
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasConversion<string>(); // Store enum as string
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.Property(e => e.Remarks)
@@ -232,11 +244,18 @@ public class InventoryContext(DbContextOptions<InventoryContext> options) : Iden
                 .HasForeignKey(e => e.ProcessedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            entity.HasOne(e => e.CancelledByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CancelledByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Indexes
             entity.HasIndex(e => e.ItemId);
             entity.HasIndex(e => e.TransactionDate);
             entity.HasIndex(e => e.TransactionType);
+            entity.HasIndex(e => e.Status);
             entity.HasIndex(e => new { e.ItemId, e.TransactionDate });
+            entity.HasIndex(e => new { e.TransactionType, e.Status });
         });
     }
 
