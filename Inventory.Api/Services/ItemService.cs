@@ -79,15 +79,7 @@ public class ItemService(InventoryContext context, ILogger<ItemService> logger) 
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(i => new ItemSummaryDto
-            {
-                Id = i.Id,
-                Name = i.Name,
-                Quantity = i.Quantity,
-                IsActive = i.IsActive,
-                CanDistribute = i.IsActive && i.Quantity > 0,
-                CreatedAt = i.CreatedAt
-            })
+            .Select(i => i.ToSummaryDto())
             .ToListAsync();
 
         // Build paginated result with items and metadata
