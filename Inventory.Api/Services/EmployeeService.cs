@@ -58,16 +58,7 @@ public class EmployeeService(InventoryContext context, ILogger<EmployeeService> 
         var employees = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(e => new EmployeeSummaryDto
-            {
-                Id = e.Id,
-                FullName = e.FullName,
-                Position = e.Position,
-                Department = e.Department,
-                EmployeeCode = e.EmployeeCode,
-                IsActive = e.IsActive,
-                CreatedAt = e.CreatedAt
-            })
+            .Select(e => e.ToSummaryDto())
             .ToListAsync();
 
         // Build paginated result with items and metadata
@@ -245,7 +236,6 @@ public class EmployeeService(InventoryContext context, ILogger<EmployeeService> 
         // Return success result with 204 No Content status
         return ServiceResult.Ok(204); // 204 No Content
     }
-
 
     public async Task<ServiceResult<EmployeeDto>> RestoreEmployeeAsync(int id)
     {
