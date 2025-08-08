@@ -77,6 +77,7 @@ builder.Services.AddDbContext<InventoryContext>(options =>
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Configure Identity
 builder.Services.AddIdentity<User, Role>()
