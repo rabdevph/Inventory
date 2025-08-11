@@ -23,6 +23,9 @@ public class ServiceResult<T>
     public static ServiceResult<T> Fail(int responseStatusCode, string errorTitle, string errorMessage) =>
         new() { Success = false, ResponseStatusCode = responseStatusCode, ErrorTitle = errorTitle, ErrorMessage = errorMessage };
 
+    public static ServiceResult<T> Unauthorized(string message) =>
+        Fail(401, "Unauthorized", message);
+
     public static ServiceResult<T> NotFound(string message = "Resource not found") =>
         Fail(404, "Not Found", message);
 
@@ -60,6 +63,9 @@ public class ServiceResult
 
     public static ServiceResult Fail(int responseStatusCode, string errorTitle, string errorMessage) =>
         new() { Success = false, ResponseStatusCode = responseStatusCode, ErrorTitle = errorTitle, ErrorMessage = errorMessage };
+
+    public static ServiceResult Unauthorized(string message) =>
+        Fail(401, "Unauthorized", message);
 
     public static ServiceResult NotFound(string message = "Resource not found") =>
         Fail(404, "Not Found", message);
