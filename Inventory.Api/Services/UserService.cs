@@ -3,7 +3,7 @@ using Inventory.Api.Interfaces;
 using Inventory.Api.Mappers;
 using Inventory.Api.Models;
 using Inventory.Shared.Dtos.Users;
-using Inventory.Shared.DTOs.Common;
+using Inventory.Shared.Dtos.Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,7 +66,7 @@ public class UserService(UserManager<User> userManager, ILogger<UserService> log
             userRoleDict[user.Id] = roles.FirstOrDefault() ?? string.Empty;
         }
 
-        // Apply role to users and project to DTOs
+        // Apply role to users and project to Dtos
         var userDtos = users.Select(u => u.ToSummaryDto(userRoleDict.ContainsKey(u.Id) ? userRoleDict[u.Id] : string.Empty)).ToList();
 
         // Build paginated result with users and metadata

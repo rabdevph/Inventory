@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Inventory.Api.Controllers;
 using Inventory.Api.Interfaces;
 using Inventory.Api.Common;
-using Inventory.Shared.DTOs.Employees;
-using Inventory.Shared.DTOs.Common;
+using Inventory.Shared.Dtos.Employees;
+using Inventory.Shared.Dtos.Common;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
 

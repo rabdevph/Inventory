@@ -1,4 +1,4 @@
-namespace Inventory.Shared.DTOs.Employees;
+namespace Inventory.Shared.Dtos.Employees;
 
 public class EmployeeDto
 {

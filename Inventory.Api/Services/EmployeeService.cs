@@ -3,8 +3,8 @@ using Inventory.Api.Data;
 using Inventory.Api.Interfaces;
 using Inventory.Api.Mappers;
 using Inventory.Api.Models;
-using Inventory.Shared.DTOs.Common;
-using Inventory.Shared.DTOs.Employees;
+using Inventory.Shared.Dtos.Common;
+using Inventory.Shared.Dtos.Employees;
 using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Api.Services;
@@ -54,7 +54,7 @@ public class EmployeeService(InventoryContext context, ILogger<EmployeeService> 
         // Get total count for pagination metadata before applying pagination
         var totalCount = await query.CountAsync();
 
-        // Apply pagination and project to DTOs for efficient data transfer
+        // Apply pagination and project to Dtos for efficient data transfer
         var employees = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

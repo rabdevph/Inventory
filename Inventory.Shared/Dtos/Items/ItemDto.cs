@@ -1,4 +1,4 @@
-namespace Inventory.Shared.DTOs.Items;
+namespace Inventory.Shared.Dtos.Items;
 
 // Data transfer object for returning inventory item details
 public class ItemDto

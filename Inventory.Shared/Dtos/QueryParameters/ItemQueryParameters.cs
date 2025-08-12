@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory.Shared.DTOs.QueryParameters;
+namespace Inventory.Shared.Dtos.QueryParameters;
 
 // Query parameters for filtering and paginating item requests
 public class ItemQueryParameters

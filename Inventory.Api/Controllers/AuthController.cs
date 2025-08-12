@@ -2,7 +2,6 @@ using Inventory.Api.Common;
 using Inventory.Api.Interfaces;
 using Inventory.Shared.Dtos.Auth;
 using Inventory.Shared.Dtos.Users;
-using Inventory.Shared.DTOs.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;

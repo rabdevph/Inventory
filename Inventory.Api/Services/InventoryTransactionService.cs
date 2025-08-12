@@ -4,7 +4,7 @@ using Inventory.Api.Data;
 using Inventory.Api.Interfaces;
 using Inventory.Api.Mappers;
 using Inventory.Shared.Dtos.InventoryTransactions;
-using Inventory.Shared.DTOs.Common;
+using Inventory.Shared.Dtos.Common;
 using Inventory.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -130,7 +130,7 @@ public class InventoryTransactionService(InventoryContext context, ILogger<Inven
         // Get total count for pagination metadata before applying pagination
         var totalCount = await query.CountAsync();
 
-        // Apply pagination and project to DTOs for efficient data transfer
+        // Apply pagination and project to Dtos for efficient data transfer
         var transactions = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -265,7 +265,7 @@ public class InventoryTransactionService(InventoryContext context, ILogger<Inven
         // Get total count for pagination metadata BEFORE applying pagination
         var totalCount = await query.CountAsync();
 
-        // Apply pagination and project to DTOs for efficient data transfer
+        // Apply pagination and project to Dtos for efficient data transfer
         var transactions = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

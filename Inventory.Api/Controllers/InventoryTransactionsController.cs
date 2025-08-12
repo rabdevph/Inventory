@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Inventory.Api.Interfaces;
 using Inventory.Api.Common;
 using Inventory.Shared.Dtos.InventoryTransactions;
-using Inventory.Shared.DTOs.Common;
+using Inventory.Shared.Dtos.Common;
 using Inventory.Shared.Enums;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;

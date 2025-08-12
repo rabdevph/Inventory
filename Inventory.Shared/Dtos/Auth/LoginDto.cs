@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory.Shared.DTOs.Auth;
+namespace Inventory.Shared.Dtos.Auth;
 
 public class LoginDto
 {

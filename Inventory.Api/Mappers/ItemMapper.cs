@@ -1,9 +1,9 @@
 using Inventory.Api.Models;
-using Inventory.Shared.DTOs.Items;
+using Inventory.Shared.Dtos.Items;
 
 namespace Inventory.Api.Mappers;
 
-// Static class containing extension methods for mapping between Item entities and DTOs
+// Static class containing extension methods for mapping between Item entities and Dtos
 public static class ItemMapper
 {
     // Converts a full Item entity to ItemDto (complete item details)

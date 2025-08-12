@@ -1,4 +1,4 @@
-namespace Inventory.Shared.DTOs.Common;
+namespace Inventory.Shared.Dtos.Common;
 
 // Generic container for paginated results
 public class PagedResult<T>

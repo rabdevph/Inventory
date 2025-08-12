@@ -4,7 +4,7 @@ using Inventory.Shared.Enums;
 
 namespace Inventory.Api.Mappers;
 
-// Static class containing extension methods for mapping InventoryTransaction entities and DTOs
+// Static class containing extension methods for mapping InventoryTransaction entities and Dtos
 public static class InventoryTransactionMapper
 {
     // Converts a full InventoryTransaction entity to InventoryTransactionDto
@@ -80,7 +80,7 @@ public static class InventoryTransactionMapper
         };
     }
 
-    // Converts a collection of InventoryTransaction entities to a collection of DTOs for IN transactions
+    // Converts a collection of InventoryTransaction entities to a collection of Dtos for IN transactions
     public static IEnumerable<CreateInInventoryTransactionDto> ToInDto(this IEnumerable<InventoryTransaction> transactions)
     {
         return transactions.Select(ToInDto);
@@ -113,7 +113,7 @@ public static class InventoryTransactionMapper
         };
     }
 
-    // Converts a collection of InventoryTransaction entities to a collection of DTOs for OUT transactions
+    // Converts a collection of InventoryTransaction entities to a collection of Dtos for OUT transactions
     public static IEnumerable<CreateOutInventoryTransactionDto> ToOutDto(this IEnumerable<InventoryTransaction> transactions)
     {
         return transactions.Select(ToOutDto);

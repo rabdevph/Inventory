@@ -1,4 +1,4 @@
-namespace Inventory.Shared.DTOs.Employees;
+namespace Inventory.Shared.Dtos.Employees;
 
 // Simplified data transfer object for employee summaries in lists
 public class EmployeeSummaryDto

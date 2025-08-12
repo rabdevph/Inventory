@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory.Shared.DTOs.Items;
+namespace Inventory.Shared.Dtos.Items;
 
 // Data transfer object for creating a new inventory item
 public class CreateItemDto

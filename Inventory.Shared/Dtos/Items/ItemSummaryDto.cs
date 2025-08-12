@@ -1,4 +1,4 @@
-namespace Inventory.Shared.DTOs.Items;
+namespace Inventory.Shared.Dtos.Items;
 
 // Simplified data transfer object for inventory item summaries in lists
 public class ItemSummaryDto

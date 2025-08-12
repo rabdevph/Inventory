@@ -5,7 +5,6 @@ using Inventory.Api.Mappers;
 using Inventory.Api.Models;
 using Inventory.Shared.Dtos.Auth;
 using Inventory.Shared.Dtos.Users;
-using Inventory.Shared.DTOs.Auth;
 using Microsoft.AspNetCore.Identity;
 
 namespace Inventory.Api.Services;

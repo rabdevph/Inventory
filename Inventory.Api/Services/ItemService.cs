@@ -4,8 +4,8 @@ using Inventory.Api.Interfaces;
 using Inventory.Api.Models;
 using Inventory.Api.Mappers;
 using Inventory.Api.Common;
-using Inventory.Shared.DTOs.Common;
-using Inventory.Shared.DTOs.Items;
+using Inventory.Shared.Dtos.Common;
+using Inventory.Shared.Dtos.Items;
 
 namespace Inventory.Api.Services;
 
@@ -75,7 +75,7 @@ public class ItemService(InventoryContext context, ILogger<ItemService> logger) 
         // Get total count for pagination metadata before applying pagination
         var totalCount = await query.CountAsync();
 
-        // Apply pagination and project to DTOs for efficient data transfer
+        // Apply pagination and project to Dtos for efficient data transfer
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

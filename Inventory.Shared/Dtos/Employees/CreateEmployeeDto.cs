@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory.Shared.DTOs.Employees;
+namespace Inventory.Shared.Dtos.Employees;
 
 public class CreateEmployeeDto
 {

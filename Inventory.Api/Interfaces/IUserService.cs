@@ -1,6 +1,6 @@
 using Inventory.Api.Common;
 using Inventory.Shared.Dtos.Users;
-using Inventory.Shared.DTOs.Common;
+using Inventory.Shared.Dtos.Common;
 
 namespace Inventory.Api.Interfaces;
 

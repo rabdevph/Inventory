@@ -1,10 +1,9 @@
 using Inventory.Api.Models;
-using Inventory.Shared.DTOs.Employees;
-using Microsoft.AspNetCore.StaticAssets;
+using Inventory.Shared.Dtos.Employees;
 
 namespace Inventory.Api.Mappers;
 
-// Static class containing extension methods for mapping between Employee entities and DTOs
+// Static class containing extension methods for mapping between Employee entities and Dtos
 public static class EmployeeMapper
 {
     // Converts a full Employee entity to EmployeeDto (complete employee details)

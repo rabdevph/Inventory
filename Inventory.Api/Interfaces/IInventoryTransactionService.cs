@@ -1,5 +1,5 @@
 using Inventory.Api.Common;
-using Inventory.Shared.DTOs.Common;
+using Inventory.Shared.Dtos.Common;
 using Inventory.Shared.Dtos.InventoryTransactions;
 using Inventory.Shared.Enums;
 
