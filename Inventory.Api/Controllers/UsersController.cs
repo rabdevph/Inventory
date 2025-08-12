@@ -5,6 +5,7 @@ using Inventory.Api.Common;
 using Inventory.Shared.Dtos.Users;
 using Inventory.Shared.DTOs.Common;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Inventory.Api.Controllers;
 
@@ -18,6 +19,7 @@ namespace Inventory.Api.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/users")]
+[Authorize(Policy = "CanManageUsers")]
 [Produces("application/json")]
 [Tags("Users")]
 public class UsersController(IUserService userService, ILogger<UsersController> logger) : ApiBaseController

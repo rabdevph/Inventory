@@ -5,6 +5,7 @@ using Inventory.Shared.Dtos.InventoryTransactions;
 using Inventory.Shared.DTOs.Common;
 using Inventory.Shared.Enums;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Inventory.Api.Controllers;
 
@@ -65,6 +66,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// <response code="400">Invalid parameters provided (e.g., invalid page number, page size out of range)</response>
     /// <response code="500">Internal server error occurred</response>
     [HttpGet]
+    [Authorize(Policy = "CanViewTransactions")]
     [ProducesResponseType(typeof(PagedResult<InventoryTransactionSummaryDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
@@ -111,6 +113,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// <response code="404">Transaction with the specified ID was not found</response>
     /// <response code="500">Internal server error occurred</response>
     [HttpGet("{id:int}")]
+    [Authorize(Policy = "CanViewTransactions")]
     [ProducesResponseType(typeof(InventoryTransactionDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -143,6 +146,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// <response code="400">Invalid parameters provided</response>
     /// <response code="500">Internal server error occurred</response>
     [HttpGet("pending")]
+    [Authorize(Policy = "CanManageOutTransactions")]
     [ProducesResponseType(typeof(PagedResult<InventoryTransactionSummaryDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
@@ -202,6 +206,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// - Transaction code is automatically generated (format: IN-YYYYMMDD-NNNN)
     /// </remarks>
     [HttpPost("in")]
+    [Authorize(Policy = "CanManageInTransactions")]
     [ProducesResponseType(typeof(InventoryTransactionDto), (int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.UnprocessableEntity)]
@@ -272,6 +277,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// - Transaction is created in Pending status and requires processing
     /// </remarks>
     [HttpPost("out")]
+    [Authorize(Policy = "CanManageOutTransactions")]
     [ProducesResponseType(typeof(InventoryTransactionDto), (int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.UnprocessableEntity)]
@@ -308,7 +314,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// Processes a pending OUT transaction, marking it as completed.
     /// </summary>
     /// <param name="id">The unique identifier of the transaction to process (must be positive integer)</param>
-    /// <param name="request">The request containing the ID of the user processing the transaction</param>
+    /// <param name="processDto">The data transfer object containing the ID of the user processing the transaction</param>
     /// <returns>
     /// The processed transaction with updated status and processing information.
     /// </returns>
@@ -331,22 +337,30 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     ///     }
     /// </remarks>
     [HttpPatch("{id:int}/process")]
+    [Authorize(Policy = "CanManageOutTransactions")]
     [ProducesResponseType(typeof(InventoryTransactionDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> ProcessOutTransaction(int id, [FromBody] ProcessTransactionRequest request)
+    public async Task<IActionResult> ProcessOutTransaction(int id, [FromBody] ProcessTransactionDto processDto)
     {
         _logger.LogInformation("API.TRANSACTIONS.PROCESS: Processing OUT transaction ID: {TransactionId} by user: {UserId}",
-            id, request?.ProcessedByUserId ?? "null");
+            id, processDto?.ProcessedByUserId ?? "null");
 
-        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request?.ProcessedByUserId))
+        if (!ModelState.IsValid)
         {
-            _logger.LogWarning("API.TRANSACTIONS.PROCESS.VALIDATION: Invalid request for transaction ID: {TransactionId}", id);
-            return BadRequest("ProcessedByUserId is required.");
+            var validationErrors = string.Join("; ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
+
+            _logger.LogWarning("API.TRANSACTIONS.PROCESS.VALIDATION: Model validation failed for transaction ID: {TransactionId} - Errors: {ValidationErrors}",
+                id, validationErrors);
+
+            var validationResult = ServiceResult.ValidationError(validationErrors);
+            return HandleServiceResult(validationResult);
         }
 
-        var result = await _transactionService.ProcessOutTransactionAsync(id, request!.ProcessedByUserId);
+        var result = await _transactionService.ProcessOutTransactionAsync(id, processDto!.ProcessedByUserId);
 
         if (!result.Success)
         {
@@ -361,7 +375,7 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     /// Cancels a transaction, marking it as cancelled with audit information.
     /// </summary>
     /// <param name="id">The unique identifier of the transaction to cancel (must be positive integer)</param>
-    /// <param name="request">The request containing the ID of the user cancelling the transaction</param>
+    /// <param name="cancelDto">The data transfer object containing the ID of the user cancelling the transaction</param>
     /// <returns>
     /// The cancelled transaction with updated status and cancellation information.
     /// </returns>
@@ -384,22 +398,30 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
     ///     }
     /// </remarks>
     [HttpPatch("{id:int}/cancel")]
+    [Authorize(Policy = "CanCancelTransactions")]
     [ProducesResponseType(typeof(InventoryTransactionDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> CancelTransaction(int id, [FromBody] CancelTransactionRequest request)
+    public async Task<IActionResult> CancelTransaction(int id, [FromBody] CancelTransactionDto cancelDto)
     {
         _logger.LogInformation("API.TRANSACTIONS.CANCEL: Cancelling transaction ID: {TransactionId} by user: {UserId}",
-            id, request?.CancelledByUserId ?? "null");
+            id, cancelDto?.CancelledByUserId ?? "null");
 
-        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request?.CancelledByUserId))
+        if (!ModelState.IsValid)
         {
-            _logger.LogWarning("API.TRANSACTIONS.CANCEL.VALIDATION: Invalid request for transaction ID: {TransactionId}", id);
-            return BadRequest("CancelledByUserId is required.");
+            var validationErrors = string.Join("; ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
+
+            _logger.LogWarning("API.TRANSACTIONS.CANCEL.VALIDATION: Model validation failed for transaction ID: {TransactionId} - Errors: {ValidationErrors}",
+                id, validationErrors);
+
+            var validationResult = ServiceResult.ValidationError(validationErrors);
+            return HandleServiceResult(validationResult);
         }
 
-        var result = await _transactionService.CancelTransactionAsync(id, request!.CancelledByUserId);
+        var result = await _transactionService.CancelTransactionAsync(id, cancelDto!.CancelledByUserId);
 
         if (!result.Success)
         {
@@ -409,28 +431,6 @@ public class InventoryTransactionsController(IInventoryTransactionService transa
 
         return HandleServiceResult(result);
     }
-}
-
-/// <summary>
-/// Request model for processing transactions.
-/// </summary>
-public class ProcessTransactionRequest
-{
-    /// <summary>
-    /// The ID of the user processing the transaction.
-    /// </summary>
-    public string ProcessedByUserId { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Request model for cancelling transactions.
-/// </summary>
-public class CancelTransactionRequest
-{
-    /// <summary>
-    /// The ID of the user cancelling the transaction.
-    /// </summary>
-    public string CancelledByUserId { get; set; } = string.Empty;
 }
 
 

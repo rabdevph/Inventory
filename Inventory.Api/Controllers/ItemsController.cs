@@ -5,6 +5,7 @@ using Inventory.Api.Common;
 using Inventory.Shared.DTOs.Items;
 using Inventory.Shared.DTOs.Common;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Inventory.Api.Controllers;
 
@@ -61,6 +62,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// GET /api/items?page=1&amp;pageSize=10&amp;isActive=true&amp;searchTerm=laptop&amp;sortBy=Name&amp;sortDescending=false
     /// </example>
     [HttpGet]
+    [Authorize(Policy = "CanViewInventory")]
     [ProducesResponseType(typeof(PagedResult<ItemSummaryDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
@@ -108,6 +110,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// GET /api/items/123?includeInactive=true
     /// </example>
     [HttpGet("{id:int}")]
+    [Authorize(Policy = "CanViewInventory")]
     [ProducesResponseType(typeof(ItemDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -149,6 +152,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// GET /api/items/by-name/Office%20Chair?includeInactive=true
     /// </example>
     [HttpGet("by-name/{name}")]
+    [Authorize(Policy = "CanViewInventory")]
     [ProducesResponseType(typeof(ItemDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -201,6 +205,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// - Unit must be a valid positive integer
     /// </remarks>
     [HttpPost]
+    [Authorize(Policy = "CanManageInventory")]
     [ProducesResponseType(typeof(ItemDto), (int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
@@ -268,6 +273,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// - Quantity cannot be modified through this endpoint (use specific quantity management endpoints)
     /// </remarks>
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "CanManageInventory")]
     [ProducesResponseType(typeof(ItemDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -322,6 +328,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// Use the activate endpoint (PATCH /api/items/{id}/activate) to reactivate the item.
     /// </remarks>
     [HttpPatch("{id:int}/deactivate")]
+    [Authorize(Policy = "CanManageInventory")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -365,6 +372,7 @@ public class ItemsController(IItemService itemService, ILogger<ItemsController> 
     /// maintaining all its properties, relationships, and transaction history.
     /// </remarks>
     [HttpPatch("{id:int}/activate")]
+    [Authorize(Policy = "CanManageInventory")]
     [ProducesResponseType(typeof(ItemDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]

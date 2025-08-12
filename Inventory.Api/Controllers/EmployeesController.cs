@@ -5,6 +5,7 @@ using Inventory.Api.Common;
 using Inventory.Shared.DTOs.Employees;
 using Inventory.Shared.DTOs.Common;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Inventory.Api.Controllers;
 
@@ -33,6 +34,7 @@ namespace Inventory.Api.Controllers;
 /// <exception cref="ArgumentNullException">Thrown when employeeService or logger is null</exception>
 [ApiController]
 [Route("api/employees")]
+[Authorize(Policy = "CanManageEmployees")]
 [Produces("application/json")]
 [Tags("Employees")]
 public class EmployeesController(IEmployeeService employeeService, ILogger<EmployeesController> logger) : ApiBaseController
