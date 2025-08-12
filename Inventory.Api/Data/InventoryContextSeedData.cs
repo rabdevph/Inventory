@@ -16,7 +16,7 @@ public class InventoryContextSeedData(
 
     public async Task SeedAsync()
     {
-        var roles = new[] { "Administrator", "Supply Officer", "Supply Assistant" };
+        var roles = new[] { "Administrator", "Property Officer", "Store Keeper", "Supply Assistant" };
 
         foreach (var role in roles)
         {
