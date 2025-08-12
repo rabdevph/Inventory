@@ -118,32 +118,31 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
-            .AddPolicy("RequireSuperAdminRole", policy =>
-                policy.RequireRole("SuperAdmin"))
-            .AddPolicy("RequireAdministratorRole", policy =>
-                policy.RequireRole("Administrator", "SuperAdmin"))
-            .AddPolicy("RequireSupplyOfficerRole", policy =>
-                policy.RequireRole("Supply Officer", "Administrator", "SuperAdmin"))
-            .AddPolicy("RequireSupplyAssistantRole", policy =>
-                policy.RequireRole("Supply Assistant", "Supply Officer", "Administrator", "SuperAdmin"))
             .AddPolicy("CanManageUsers", policy =>
-                policy.RequireRole("SuperAdmin"))
+                policy.RequireRole("Administrator"))
             .AddPolicy("CanManageEmployees", policy =>
-                policy.RequireRole("Administrator", "SuperAdmin"))
+                policy.RequireRole("Administrator"))
             .AddPolicy("CanManageInventory", policy =>
-                policy.RequireRole("Supply Officer", "Administrator", "SuperAdmin"))
+                policy.RequireRole("Administrator", "Property Officer", "Store Keeper"))
+            .AddPolicy("CanManageTransactions", policy =>
+                policy.RequireRole("Administrator", "Property Officer"))
+
             .AddPolicy("CanViewInventory", policy =>
-                policy.RequireRole("Supply Assistant", "Supply Officer", "Administrator", "SuperAdmin"))
-            .AddPolicy("CanCreateTransactions", policy =>
-                policy.RequireRole("Supply Assistant", "Supply Officer", "Administrator", "SuperAdmin"))
-            .AddPolicy("CanViewReports", policy =>
-                policy.RequireRole("Supply Officer", "Administrator", "SuperAdmin"))
-            .AddPolicy("CanDeleteItems", policy =>
-                policy.RequireRole("Administrator", "SuperAdmin"))
+                policy.RequireRole("Administrator", "Property Officer", "Store Keeper", "Supply Assistant"))
+
+            .AddPolicy("CanViewTransactions", policy =>
+                policy.RequireRole("Administrator", "Property Officer", "Store Keeper"))
+            .AddPolicy("CanManageInTransactions", policy =>
+                policy.RequireRole("Administrator", "Property Officer", "Store Keeper"))
+            .AddPolicy("CanManageOutTransactions", policy =>
+                policy.RequireRole("Administrator", "Property Officer", "Supply Assistant"))
+            .AddPolicy("CanCancelTransactions", policy =>
+                policy.RequireRole("Administrator", "Property Officer", "Store Keeper", "Supply Assistant"))
+
             .AddPolicy("CanManageRoles", policy =>
-                policy.RequireRole("SuperAdmin"))
+                policy.RequireRole("Administrator"))
             .AddPolicy("CanManageSystem", policy =>
-                policy.RequireRole("SuperAdmin"));
+                policy.RequireRole("Administrator"));
 
         return services;
     }
