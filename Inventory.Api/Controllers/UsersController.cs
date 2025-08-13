@@ -6,6 +6,8 @@ using Inventory.Shared.Dtos.Users;
 using Inventory.Shared.Dtos.Common;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Inventory.Api.Models;
 
 namespace Inventory.Api.Controllers;
 
@@ -19,12 +21,12 @@ namespace Inventory.Api.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/users")]
-[Authorize(Policy = "CanManageUsers")]
 [Produces("application/json")]
 [Tags("Users")]
-public class UsersController(IUserService userService, ILogger<UsersController> logger) : ApiBaseController
+public class UsersController(IUserService userService, UserManager<User> userManager, ILogger<UsersController> logger) : ApiBaseController
 {
     private readonly IUserService _userService = userService;
+    private readonly UserManager<User> _userManager = userManager;
     private readonly ILogger<UsersController> _logger = logger;
 
     /// <summary>
@@ -44,6 +46,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     /// GET /api/users?page=1&amp;pageSize=10&amp;isActive=true&amp;searchTerm=admin&amp;sortBy=UserName&amp;sortDescending=false
     /// </example>
     [HttpGet]
+    [Authorize(Policy = "CanManageUsers")]
     [ProducesResponseType(typeof(PagedResult<UserSummaryDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
@@ -72,6 +75,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     /// GET /api/users/123
     /// </example>
     [HttpGet("{id}")]
+    [Authorize(Policy = "CanManageUsers")]
     [ProducesResponseType(typeof(UserDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -108,6 +112,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     ///     }
     /// </remarks>
     [HttpPost]
+    [Authorize(Policy = "CanManageUsers")]
     [ProducesResponseType(typeof(UserDto), (int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
@@ -171,6 +176,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     ///     }
     /// </remarks>
     [HttpPut("{id}")]
+    [Authorize(Policy = "CanManageUsers")]
     [ProducesResponseType(typeof(UserDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -220,6 +226,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     /// <response code="409">User is already deactivated</response>
     /// <response code="500">Internal server error occurred</response>
     [HttpPatch("{id}/deactivate")]
+    [Authorize(Policy = "CanManageUsers")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -250,6 +257,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     /// <response code="409">User is already active</response>
     /// <response code="500">Internal server error occurred</response>
     [HttpPatch("{id}/activate")]
+    [Authorize(Policy = "CanManageUsers")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -271,16 +279,84 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     }
 
     /// <summary>
-    /// Changes the password for a user.
+    /// Changes the password for the current logged-in user.
+    /// </summary>
+    /// <param name="changePasswordDto">The password change request containing the current, new, and confirmation password</param>
+    /// <returns>Success if the password was changed, otherwise an error response.</returns>
+    /// <response code="200">Password was successfully changed</response>
+    /// <response code="400">Invalid request data or model validation failed</response>
+    /// <response code="401">User not authenticated</response>
+    /// <response code="500">Internal server error occurred</response>
+    /// <remarks>
+    /// This endpoint allows users to change their own password. Users must provide their current password for security verification.
+    /// 
+    /// Sample request:
+    ///
+    ///     POST /api/users/me/change-password
+    ///     {
+    ///         "currentPassword": "oldPass123",
+    ///         "newPassword": "newPass456",
+    ///         "confirmPassword": "newPass456"
+    ///     }
+    /// </remarks>
+    [HttpPost("me/change-password")]
+    [Authorize]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    public async Task<IActionResult> ChangeMyPassword([FromBody] ChangePasswordDto changePasswordDto)
+    {
+        _logger.LogInformation("API.USERS.CHANGE_MY_PASSWORD: Current user changing their own password");
+
+        if (!ModelState.IsValid)
+        {
+            var validationErrors = string.Join("; ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
+
+            _logger.LogWarning("API.USERS.CHANGE_MY_PASSWORD.VALIDATION: Model validation failed - Errors: {ValidationErrors}", validationErrors);
+
+            var validationResult = ServiceResult.ValidationError(validationErrors);
+            return HandleServiceResult(validationResult);
+        }
+
+        // Get current user from the authentication context
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            _logger.LogWarning("API.USERS.CHANGE_MY_PASSWORD.UNAUTHORIZED: Could not identify current user");
+            return Unauthorized("Could not identify current user");
+        }
+
+        var result = await _userService.ChangePasswordAsync(currentUser.Id, changePasswordDto);
+        if (!result.Success)
+        {
+            _logger.LogWarning("API.USERS.CHANGE_MY_PASSWORD.FAILED: Failed to change password for user {UserId} - Error: {ErrorMessage}",
+                currentUser.Id, result.ErrorMessage);
+        }
+        else
+        {
+            _logger.LogInformation("API.USERS.CHANGE_MY_PASSWORD.SUCCESS: Successfully changed password for user {UserId}", currentUser.Id);
+        }
+
+        return HandleServiceResult(result);
+    }
+
+    /// <summary>
+    /// Changes the password for a user (Admin only).
     /// </summary>
     /// <param name="id">The unique identifier of the user whose password is to be changed</param>
     /// <param name="changePasswordDto">The password change request containing the current, new, and confirmation password</param>
     /// <returns>Success if the password was changed, otherwise an error response.</returns>
     /// <response code="200">Password was successfully changed</response>
     /// <response code="400">Invalid request data or model validation failed</response>
+    /// <response code="403">Forbidden - Only administrators can change other users' passwords</response>
     /// <response code="404">User with the specified ID was not found</response>
     /// <response code="500">Internal server error occurred</response>
     /// <remarks>
+    /// This endpoint is restricted to administrators only. Regular users should use the /me/change-password endpoint to change their own passwords.
+    /// 
     /// Sample request:
     ///
     ///     POST /api/users/123/change-password
@@ -291,8 +367,10 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     ///     }
     /// </remarks>
     [HttpPost("{id}/change-password")]
+    [Authorize(Roles = "Administrator")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType((int)HttpStatusCode.Forbidden)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> ChangePassword(
@@ -342,6 +420,7 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     /// GET /api/users/me
     /// </example>
     [HttpGet("me")]
+    [Authorize]
     [ProducesResponseType(typeof(UserDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
