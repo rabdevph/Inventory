@@ -21,6 +21,7 @@ public class UserService(UserManager<User> userManager, ILogger<UserService> log
         int pageSize = 20,
         bool? isActive = null,
         string? searchTerm = null,
+        string? sortBy = "UserName",
         bool sortDescending = false)
     {
         // Validate pagination parameters to ensure they are within acceptable ranges
@@ -47,7 +48,7 @@ public class UserService(UserManager<User> userManager, ILogger<UserService> log
         }
 
         // Use the ApplySorting helper
-        query = ApplySorting(query, null, sortDescending);
+        query = ApplySorting(query, sortBy, sortDescending);
 
         // Get total count for pagination metadata
         var totalCount = await query.CountAsync();

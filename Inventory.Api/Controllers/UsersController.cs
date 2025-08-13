@@ -34,13 +34,14 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
     /// <param name="pageSize">Number of users per page (default: 20, range: 1-100)</param>
     /// <param name="isActive">Filter by active status. null = all users, true = active only, false = inactive only</param>
     /// <param name="searchTerm">Search term to filter by username, email, or full name (case-insensitive)</param>
+    /// <param name="sortBy">Field to sort by. Valid values: "UserName", "Email", "FullName", "CreatedAt" (default: "UserName")</param>
     /// <param name="sortDescending">Sort direction. true = descending, false = ascending (default: false)</param>
     /// <returns>A paginated list of user summaries matching the specified criteria.</returns>
     /// <response code="200">Returns the paginated list of users</response>
     /// <response code="400">Invalid parameters provided (e.g., invalid page number, page size out of range)</response>
     /// <response code="500">Internal server error occurred</response>
     /// <example>
-    /// GET /api/users?page=1&amp;pageSize=10&amp;isActive=true&amp;searchTerm=admin&amp;sortDescending=false
+    /// GET /api/users?page=1&amp;pageSize=10&amp;isActive=true&amp;searchTerm=admin&amp;sortBy=UserName&amp;sortDescending=false
     /// </example>
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<UserSummaryDto>), (int)HttpStatusCode.OK)]
@@ -51,9 +52,10 @@ public class UsersController(IUserService userService, ILogger<UsersController> 
         [FromQuery] int pageSize = 20,
         [FromQuery] bool? isActive = null,
         [FromQuery] string? searchTerm = null,
+        [FromQuery] string? sortBy = "UserName",
         [FromQuery] bool sortDescending = false)
     {
-        var result = await _userService.GetAllUsersAsync(page, pageSize, isActive, searchTerm, sortDescending);
+        var result = await _userService.GetAllUsersAsync(page, pageSize, isActive, searchTerm, sortBy, sortDescending);
         return HandleServiceResult(result);
     }
 

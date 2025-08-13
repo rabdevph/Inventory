@@ -11,6 +11,7 @@ public interface IUserService
         int pageSize = 20,
         bool? isActive = null,
         string? searchTerm = null,
+        string? sortBy = "UserName",
         bool sortDescending = false
     );
     Task<ServiceResult<UserDto>> GetUserByIdAsync(string userId);
