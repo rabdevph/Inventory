@@ -1,0 +1,169 @@
+@page "/items/create"
+@rendermode InteractiveServer
+@using System.Text.Json
+@using Inventory.Shared.Dtos.Items
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Create Item - Inventory Management</PageTitle>
+
+<!-- Header Section with Navigation -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-4">
+        <button @onclick="GoBack"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Items
+        </button>
+        <div class="h-6 border-l border-gray-300"></div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Create New Item</h1>
+            <p class="text-sm text-gray-500">Add a new item to your inventory</p>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Notifications -->
+@if (!string.IsNullOrEmpty(saveMessage))
+{
+    <div class="@(saveSuccess ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200") border rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+            @if (saveSuccess)
+            {
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-medium text-green-800">Item Created Successfully</h3>
+                    <p class="text-sm text-green-700 mt-1">@saveMessage</p>
+                    <div class="mt-2 text-xs text-green-600">
+                        <p class="font-medium">Created at: @DateTime.Now.ToString("MMM dd, yyyy 'at' h:mm:ss tt")</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-medium text-red-800">@(errorTitle ?? "Creation Failed")</h3>
+                    <p class="text-sm text-red-700 mt-1">@saveMessage</p>
+                </div>
+            }
+            <button @onclick="() => { saveMessage = null; errorTitle = null; }"
+                class="flex-shrink-0 text-gray-400 hover:text-gray-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Create Form -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Item Information</h2>
+        <p class="text-sm text-gray-500">Enter the details for the new inventory item</p>
+    </div>
+
+    <form @onsubmit="HandleSubmit" @onsubmit:preventDefault="true" class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Item Name -->
+            <div class="md:col-span-2">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                    Item Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="name" @bind="createDto.Name" @bind:event="oninput"
+                    class="@GetInputClass("Name") w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter item name" maxlength="200" />
+                @if (GetValidationError("Name") != null)
+                {
+                    <p class="mt-1 text-sm text-red-600">@GetValidationError("Name")</p>
+                }
+            </div>
+
+            <!-- Unit -->
+            <div>
+                <label for="unit" class="block text-sm font-medium text-gray-700 mb-2">
+                    Unit <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="unit" @bind="createDto.Unit" @bind:event="oninput"
+                    class="@GetInputClass("Unit") w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="e.g., pieces, kg, liters" maxlength="50" />
+                @if (GetValidationError("Unit") != null)
+                {
+                    <p class="mt-1 text-sm text-red-600">@GetValidationError("Unit")</p>
+                }
+            </div>
+
+            <!-- Initial Quantity -->
+            <div>
+                <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">Initial Quantity</label>
+                <input type="number" id="quantity" @bind="createDto.InitialQuantity" @bind:event="oninput"
+                    class="@GetInputClass("InitialQuantity") w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="0" min="0" />
+                @if (GetValidationError("InitialQuantity") != null)
+                {
+                    <p class="mt-1 text-sm text-red-600">@GetValidationError("InitialQuantity")</p>
+                }
+                <p class="mt-1 text-xs text-gray-500">Starting stock quantity for this item</p>
+            </div>
+
+            <!-- Description -->
+            <div class="md:col-span-2">
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea id="description" @bind="createDto.Description" @bind:event="oninput" rows="4"
+                    class="@GetInputClass("Description") w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    placeholder="Enter item description (optional)" maxlength="1000"></textarea>
+                @if (GetValidationError("Description") != null)
+                {
+                    <p class="mt-1 text-sm text-red-600">@GetValidationError("Description")</p>
+                }
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
+            <div class="flex items-center gap-3">
+                <button type="button" @onclick="GoBack"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" disabled="@(isSaving || !IsFormValid())"
+                    class="@GetSaveButtonClass() px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
+                    @if (isSaving)
+                    {
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <text>Creating...</text>
+                    }
+                    else
+                    {
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <text>Create Item</text>
+                    }
+                </button>
+            </div>
+
+            <!-- Help Text -->
+            <div class="text-right text-xs text-gray-500">
+                <p>Fields marked with <span class="text-red-500">*</span> are required</p>
+            </div>
+        </div>
+    </form>
+</div>

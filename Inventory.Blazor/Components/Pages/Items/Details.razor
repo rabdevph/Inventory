@@ -1,0 +1,254 @@
+@page "/items/{id:int}"
+@rendermode InteractiveServer
+@using System.Text.Json
+@using Inventory.Shared.Dtos.Items
+
+<PageTitle>Item Details - Inventory Management</PageTitle>
+
+@if (isLoading)
+{
+    <div class="flex items-center justify-center min-h-96">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading item details...</p>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <!-- Header with Back Button -->
+    <div class="flex items-center gap-4 mb-6">
+        <button @onclick="GoBack"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Items
+        </button>
+    </div>
+
+    <!-- Error State -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <div class="text-red-600 mb-4">
+            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Item</h3>
+        <p class="text-red-600 mb-4">@errorMessage</p>
+        <button @onclick="LoadItem" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Try Again
+        </button>
+    </div>
+}
+else if (item != null)
+{
+    <!-- Header Section with Navigation and Actions -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+            <button @onclick="GoBack"
+                class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Items
+            </button>
+            <div class="h-6 border-l border-gray-300"></div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">@item.Name</h1>
+                <p class="text-sm text-gray-500">Item ID: @item.Id</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Status Badge -->
+            <span
+                class="@(item.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800") px-3 py-1 rounded-lg text-sm font-medium">
+                @item.StatusBadge
+            </span>
+
+            <!-- Edit Button -->
+            <button @onclick="EditItem"
+                class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                    </path>
+                </svg>
+                Edit Item
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Basic Information -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Details Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Item Name</label>
+                            <p class="text-gray-900 font-medium">@item.Name</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Unit</label>
+                            <p class="text-gray-900">@item.Unit</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Description</label>
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <p class="text-gray-900">@item.Description</p>
+                            }
+                            else
+                            {
+                                <p class="text-gray-400 italic">No description provided</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Permissions</h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center gap-3">
+                            <div class="@(item.CanReceiveStock ? "bg-green-100" : "bg-gray-100") p-2 rounded-lg">
+                                @if (item.CanReceiveStock)
+                                {
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                }
+                                else
+                                {
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                }
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Can Receive Stock</p>
+                                <p class="text-sm text-gray-500">@(item.CanReceiveStock ? "Yes" : "No")</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="@(item.CanDistribute ? "bg-green-100" : "bg-gray-100") p-2 rounded-lg">
+                                @if (item.CanDistribute)
+                                {
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                }
+                                else
+                                {
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                }
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Can Distribute</p>
+                                <p class="text-sm text-gray-500">@(item.CanDistribute ? "Yes" : "No")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Stock Info and Timeline -->
+        <div class="space-y-6">
+            <!-- Stock Information Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Stock Information</h2>
+                </div>
+                <div class="p-6">
+                    <div class="text-center mb-4">
+                        <div class="@GetStockDisplayClass() text-3xl font-bold mb-2">
+                            @item.Quantity
+                        </div>
+                        <p class="text-sm text-gray-500 mb-3">Current Stock Level</p>
+
+                        <!-- Stock Status Badge -->
+                        <span class="@GetStockBadgeClass() px-3 py-1 rounded-lg text-sm font-medium">
+                            @GetStockStatusText()
+                        </span>
+                    </div>
+
+                    @if (item.IsLowStock)
+                    {
+                        <div class="flex-col p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-center gap-2 text-yellow-800">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+                                    </path>
+                                </svg>
+                                <span class="text-xs font-medium">Low Stock Warning</span>
+                            </div>
+                            <div class="text-xs text-yellow-700">This item is running low on stock. Consider restocking
+                                soon.
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Timeline Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Timeline</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 p-2 rounded-lg">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Created</p>
+                            <p class="text-sm text-gray-500">@GetLocalTime(item.CreatedAt).ToString("MMM dd, yyyy 'at' h:mm tt")</p>
+                        </div>
+                    </div>
+
+                    @if (item.UpdatedAt.HasValue)
+                    {
+                        <div class="flex items-center gap-3">
+                            <div class="bg-green-100 p-2 rounded-lg">
+                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Last Updated</p>
+                                <p class="text-sm text-gray-500">@GetLocalTime(item.UpdatedAt.Value).ToString("MMM dd, yyyy 'at' h:mm tt")</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
