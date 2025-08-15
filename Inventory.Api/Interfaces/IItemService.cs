@@ -21,6 +21,6 @@ public interface IItemService
     Task<ServiceResult<ItemDto>> GetItemByNameAsync(string name, bool includeInactive = false);
     Task<ServiceResult<ItemDto>> CreateItemAsync(CreateItemDto createItemDto);
     Task<ServiceResult<ItemDto>> UpdateItemAsync(int id, UpdateItemDto updateItemDto);
-    Task<ServiceResult> DeleteItemAsync(int id);
-    Task<ServiceResult<ItemDto>> RestoreItemAsync(int id);
+    Task<ServiceResult> DeactivateItemAsync(int id);
+    Task<ServiceResult<ItemDto>> ActivateItemAsync(int id);
 }

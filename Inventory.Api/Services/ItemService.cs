@@ -215,7 +215,7 @@ public class ItemService(InventoryContext context, ILogger<ItemService> logger) 
         return ServiceResult<ItemDto>.Ok(item.ToDto());
     }
 
-    public async Task<ServiceResult> DeleteItemAsync(int id)
+    public async Task<ServiceResult> DeactivateItemAsync(int id)
     {
         // Validate that the provided ID is a positive integer
         if (id <= 0)
@@ -244,7 +244,7 @@ public class ItemService(InventoryContext context, ILogger<ItemService> logger) 
         return ServiceResult.Ok(204); // 204 No Content
     }
 
-    public async Task<ServiceResult<ItemDto>> RestoreItemAsync(int id)
+    public async Task<ServiceResult<ItemDto>> ActivateItemAsync(int id)
     {
         // Validate that the provided ID is a positive integer
         if (id <= 0)
